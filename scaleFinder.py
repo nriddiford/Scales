@@ -65,7 +65,13 @@ def get_args():
                       action="store",
                       help="What scales have this note in them?")
 
-    parser.set_defaults(interval='maj', key='C')
+    parser.add_option("-p", \
+                      "--position", \
+                      dest="position ",
+                      action="store",
+                      help="The location in a scale ['root', 'second' ...]?")
+
+    parser.set_defaults(interval='maj', key='C', position='third')
     options, args = parser.parse_args()
 
     if options.key is None and options.note is None:
@@ -77,10 +83,11 @@ def get_args():
 
 def main():
     options, args = get_args()
+    key = options.key
+    interval = options.interval
+    position = options.position
 
-    if options.key is not None or options.note is not None:
-        key = options.key
-        interval = options.interval
+    if options.note is not None:
 
         if options.note is not None:
             lookup = options.note
@@ -96,9 +103,9 @@ def main():
 
         scale, d = major_scale(notes)
 
-        if options.note is not None:
+        if options.note is not None and options.position is not None:
             note = options.note
-            note_position = find_interval(d, note, 'fifth')
+            note_position = find_interval(d, note, position)
 
         if options.note is None:
             if not key in scale:
@@ -112,14 +119,16 @@ def main():
             # scale, d = minor_scale(notes, key)
 
 
-            root, maj_third, fifth = d[key]['root'], d[key]['third'], d[key]['fifth']
+            root, maj_third, fifth, seventh = d[key]['root'], d[key]['third'], d[key]['fifth'], d[key]['seventh']
 
             maj_scale = '\t'.join(scale[key])
             chords = [ "I", "II", "III", "IV", "V", "VI", "VII" ]
             maj_chrods = '\t'.join(chords)
 
             print
-            print("%s triad: %s  %s  %s") % (interval, root, maj_third, fifth)
+            print("%s triad:   %s %s %s") % (interval, root, maj_third, fifth)
+            print("%s seventh: %s %s %s %s") % (interval, root, maj_third, fifth, seventh)
+
             print
             print("%s" % maj_chrods)
             print("%s" % maj_scale)
