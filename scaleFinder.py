@@ -40,6 +40,36 @@ def major_scale(notes):
 
     return(scale, d)
 
+def minor_scale(notes):
+    pos = 0
+    d = {}
+    scale = defaultdict(list)
+
+    for n in notes:
+        d[n] = {}
+        root = notes[pos]
+        second = notes[pos+2]
+        flat_third = notes[pos+3]
+        fourth = notes[pos+5]
+        fifth = notes[pos+7]
+        flat_sixth = notes[pos+8]
+        flat_seventh = notes[pos+10]
+        scale[n] = [root, second, flat_third, fourth, fifth, flat_sixth, flat_seventh]
+
+        d[n]['root'] = root
+        d[n]['second'] = second
+        d[n]['third'] = flat_third
+        d[n]['fourth'] = fourth
+        d[n]['fifth'] = fifth
+        d[n]['sixth'] = flat_sixth
+        d[n]['seventh'] = flat_seventh
+
+        pos +=1
+        if pos > 12:
+            break
+
+    return(scale, d)
+
 def find_interval(scales, note, interval):
     for k in scales:
         if scales[k][interval] == note:
@@ -47,9 +77,10 @@ def find_interval(scales, note, interval):
             relative_key = k
     return(relative_key)
 
-def print_maj(d, maj_scales, key):
+
+def print_scale(d, maj_scales, key, interval):
     print("--------")
-    print("%s Major" % key)
+    print("%s %s") % (key, interval)
     print("--------")
 
     root, maj_third, fifth, seventh = d[key]['root'], d[key]['third'], d[key]['fifth'], d[key]['seventh']
@@ -66,7 +97,6 @@ def print_maj(d, maj_scales, key):
     print("%s" % maj_chrods)
     print("%s" % print_maj_scale)
     print
-
 
 
 def get_args():
@@ -127,20 +157,26 @@ def main():
             notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
                   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-        maj_scales, d = major_scale(notes)
+        if interval == 'maj':
+            interval = 'Major'
+            scales, d = major_scale(notes)
+
+        else:
+            interval = 'Minor'
+            scales, d = minor_scale(notes)
+
 
         if options.note is not None:
             note = options.note
             relative_key = find_interval(d, note, position)
-            print_maj(d, maj_scales, relative_key)
-
+            print_scale(d, scales, relative_key, interval)
 
         else:
-            if not key in maj_scales:
+            if not key in scales:
                 print("%s not a valid key. Exiting" % key)
                 sys.exit()
 
-            print_maj(d, maj_scales, key)
+            print_scale(d, scales, key, interval)
 
 
 
