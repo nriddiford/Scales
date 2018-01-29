@@ -44,9 +44,34 @@ def find_interval(scales, note, interval):
     for k in scales:
         if scales[k][interval] == note:
             print("%s is the %s note of %s major") % (note, interval, k)
+            relative_key = k
+    return(relative_key)
+
+def print_maj(d, maj_scales, key):
+    print("--------")
+    print("%s Major" % key)
+    print("--------")
+
+    root, maj_third, fifth, seventh = d[key]['root'], d[key]['third'], d[key]['fifth'], d[key]['seventh']
+
+    print_maj_scale = '\t'.join(maj_scales[key])
+    chords = [ "I", "II", "III", "IV", "V", "VI", "VII" ]
+    maj_chrods = '\t'.join(chords)
+
+    print
+    print("%s triad:   %s %s %s") % ('major', root, maj_third, fifth)
+    print("%s seventh: %s %s %s %s") % ('major', root, maj_third, fifth, seventh)
+
+    print
+    print("%s" % maj_chrods)
+    print("%s" % print_maj_scale)
+    print
+
+
 
 def get_args():
     parser = OptionParser()
+
     parser.add_option("-k", \
                     "--key", \
                     dest="key",
@@ -67,12 +92,13 @@ def get_args():
 
     parser.add_option("-p", \
                       "--position", \
-                      dest="position ",
+                      dest="position",
                       action="store",
                       help="The location in a scale ['root', 'second' ...]?")
 
     parser.set_defaults(interval='maj', key='C', position='third')
     options, args = parser.parse_args()
+
 
     if options.key is None and options.note is None:
       parser.print_help()
@@ -87,7 +113,7 @@ def main():
     interval = options.interval
     position = options.position
 
-    if options.note is not None:
+    if options.key is not None:
 
         if options.note is not None:
             lookup = options.note
@@ -101,38 +127,21 @@ def main():
             notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
                   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-        scale, d = major_scale(notes)
+        maj_scales, d = major_scale(notes)
 
-        if options.note is not None and options.position is not None:
+        if options.note is not None:
             note = options.note
-            note_position = find_interval(d, note, position)
+            relative_key = find_interval(d, note, position)
+            print_maj(d, maj_scales, relative_key)
 
-        if options.note is None:
-            if not key in scale:
+
+        else:
+            if not key in maj_scales:
                 print("%s not a valid key. Exiting" % key)
                 sys.exit()
 
-            print("--------")
-            print("%s Major" % key)
-            print("--------")
+            print_maj(d, maj_scales, key)
 
-            # scale, d = minor_scale(notes, key)
-
-
-            root, maj_third, fifth, seventh = d[key]['root'], d[key]['third'], d[key]['fifth'], d[key]['seventh']
-
-            maj_scale = '\t'.join(scale[key])
-            chords = [ "I", "II", "III", "IV", "V", "VI", "VII" ]
-            maj_chrods = '\t'.join(chords)
-
-            print
-            print("%s triad:   %s %s %s") % (interval, root, maj_third, fifth)
-            print("%s seventh: %s %s %s %s") % (interval, root, maj_third, fifth, seventh)
-
-            print
-            print("%s" % maj_chrods)
-            print("%s" % maj_scale)
-            print
 
 
 if __name__ == "__main__":
