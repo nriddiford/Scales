@@ -114,7 +114,7 @@ def get_args():
                     "--interval", \
                     dest="interval",
                     action="store",
-                    help="The interval ['maj', 'min', 'aug']")
+                    help="The interval ['major', 'minor']")
 
     parser.add_option("-n", \
                       "--note", \
@@ -126,7 +126,7 @@ def get_args():
                       "--position", \
                       dest="position",
                       action="store",
-                      help="The location in a scale ['root', 'second' ...]?")
+                      help="The location in a scale ['I', 'II' 'bIII' ... ]?")
 
     parser.set_defaults(interval='major', key='C', position='III')
     options, args = parser.parse_args()
@@ -166,7 +166,6 @@ def main():
         if options.note is not None:
             note = options.note
             relative_key, interval = find_interval(chromatic_scale, note, position, major_scale, minor_scale)
-            print(relative_key)
 
             # for i in interval:
             #     print chromatic_scale[relative_key][i]
