@@ -10,92 +10,94 @@ from collections import defaultdict
 #
 # import matplotlib.pyplot as plt
 
-def major_scale(notes):
+def get_scales(notes):
     pos = 0
-    d = {}
-    scale = defaultdict(list)
+    chrom = {}
+    major_scale = defaultdict(list)
+    minor_scale = defaultdict(list)
 
     for n in notes:
-        d[n] = {}
-        root_v = notes[pos]
-        second_v = notes[pos+2]
-        third_v = notes[pos+4]
-        fourth_v = notes[pos+5]
-        fifth_v = notes[pos+7]
-        sixth_v = notes[pos+9]
-        seventh_v = notes[pos+11]
-        scale[n] = [root_v, second_v, third_v, fourth_v, fifth_v, sixth_v, seventh_v]
-
-        d[n]['root'] = root_v
-        d[n]['second'] = second_v
-        d[n]['third'] = third_v
-        d[n]['fourth'] = fourth_v
-        d[n]['fifth'] = fifth_v
-        d[n]['sixth'] = sixth_v
-        d[n]['seventh'] = seventh_v
-
-        pos +=1
-        if pos > 12:
-            break
-
-    return(scale, d)
-
-def minor_scale(notes):
-    pos = 0
-    d = {}
-    scale = defaultdict(list)
-
-    for n in notes:
-        d[n] = {}
+        chrom[n] = {}
         root = notes[pos]
         second = notes[pos+2]
         flat_third = notes[pos+3]
+        third = notes[pos+4]
         fourth = notes[pos+5]
         fifth = notes[pos+7]
         flat_sixth = notes[pos+8]
+        sixth = notes[pos+9]
         flat_seventh = notes[pos+10]
-        scale[n] = [root, second, flat_third, fourth, fifth, flat_sixth, flat_seventh]
+        seventh = notes[pos+11]
 
-        d[n]['root'] = root
-        d[n]['second'] = second
-        d[n]['third'] = flat_third
-        d[n]['fourth'] = fourth
-        d[n]['fifth'] = fifth
-        d[n]['sixth'] = flat_sixth
-        d[n]['seventh'] = flat_seventh
+        major_scale[n] = [root, second, third, fourth, fifth, sixth, seventh]
+        minor_scale[n] = [root, second, flat_third, fourth, fifth, flat_sixth, flat_seventh]
+
+
+        chrom[n]['I'] = root
+        chrom[n]['II'] = second
+        chrom[n]['bIII'] = flat_third
+        chrom[n]['III'] = third
+        chrom[n]['IV'] = fourth
+        chrom[n]['V'] = fifth
+        chrom[n]['bVI'] = flat_sixth
+        chrom[n]['VI'] = sixth
+        chrom[n]['bVII'] = flat_seventh
+        chrom[n]['VII'] = seventh
 
         pos +=1
         if pos > 12:
             break
 
-    return(scale, d)
+    return(major_scale, minor_scale, chrom)
 
-def find_interval(scales, note, interval):
-    for k in scales:
-        if scales[k][interval] == note:
-            print("%s is the %s note of %s major") % (note, interval, k)
+
+def find_interval(chromatic_scale, note, interval, major_scale, minor_scale):
+
+    for k in chromatic_scale:
+        if chromatic_scale[k][interval] == note:
+            if note in major_scale[k]:
+                print("* %s is the %s note of %s major") % (note, interval, k)
+                scale='major'
+                print_scale(chromatic_scale, major_scale, minor_scale, k, 'major')
+
+            if note in minor_scale[k]:
+                print("* %s is the %s note of %s minor") % (note, interval, k)
+                scale='minor'
+                print_scale(chromatic_scale, major_scale, minor_scale, k, 'minor')
+
             relative_key = k
-    return(relative_key)
+    return(relative_key, scale)
 
 
-def print_scale(d, maj_scales, key, interval):
+def print_chord(d, maj_scales, key, interval):
+    print("%s %s") % (key, interval)
+
+    root, maj_third, fifth, seventh = d[key]['I'], d[key]['III'], d[key]['V'], d[key]['VII']
+
+
+def print_scale(chromatic_scale, maj_scale, min_scale, key, interval):
     print("--------")
     print("%s %s") % (key, interval)
     print("--------")
 
-    root, maj_third, fifth, seventh = d[key]['root'], d[key]['third'], d[key]['fifth'], d[key]['seventh']
-
-    print_maj_scale = '\t'.join(maj_scales[key])
-    chords = [ "I", "II", "III", "IV", "V", "VI", "VII" ]
-    maj_chrods = '\t'.join(chords)
+    if interval == 'major':
+        one, three, five, seven = chromatic_scale[key]['I'], chromatic_scale[key]['III'], chromatic_scale[key]['V'], chromatic_scale[key]['VII']
+        scale = '\t'.join(maj_scale[key])
+        chords = [ "I", "II", "III", "IV", "V", "VI", "VII" ]
+        print_chords = '\t'.join(chords)
+    if interval == 'minor':
+        one, three, five, seven = chromatic_scale[key]['I'], chromatic_scale[key]['bIII'], chromatic_scale[key]['V'], chromatic_scale[key]['bVII']
+        scale = '\t'.join(min_scale[key])
+        chords = [ "I", "II", "bIII", "IV", "V", "bVI", "bVII" ]
+        print_chords = '\t'.join(chords)
 
     print
-    print("%s triad:   %s %s %s") % ('major', root, maj_third, fifth)
-    print("%s seventh: %s %s %s %s") % ('major', root, maj_third, fifth, seventh)
+    print("%s triad:   %s %s %s") % (interval, one, three, five)
+    print("%s seventh: %s %s %s %s") % (interval, one, three, five, seven)
 
     print
-    print("%s" % maj_chrods)
-    print("%s" % print_maj_scale)
+    print("%s" % print_chords)
+    print("%s" % scale)
     print
 
 
@@ -126,7 +128,7 @@ def get_args():
                       action="store",
                       help="The location in a scale ['root', 'second' ...]?")
 
-    parser.set_defaults(interval='maj', key='C', position='third')
+    parser.set_defaults(interval='major', key='C', position='III')
     options, args = parser.parse_args()
 
 
@@ -157,26 +159,26 @@ def main():
             notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
                   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-        if interval == 'maj':
-            interval = 'Major'
-            scales, d = major_scale(notes)
 
-        else:
-            interval = 'Minor'
-            scales, d = minor_scale(notes)
+        major_scale, minor_scale, chromatic_scale = get_scales(notes)
 
 
         if options.note is not None:
             note = options.note
-            relative_key = find_interval(d, note, position)
-            print_scale(d, scales, relative_key, interval)
+            relative_key, interval = find_interval(chromatic_scale, note, position, major_scale, minor_scale)
+            print(relative_key)
+
+            # for i in interval:
+            #     print chromatic_scale[relative_key][i]
+            # print_scale(chromatic_scale, major_scale, minor_scale, relative_key, interval)
 
         else:
-            if not key in scales:
+            if not key in chromatic_scale:
                 print("%s not a valid key. Exiting" % key)
                 sys.exit()
 
-            print_scale(d, scales, key, interval)
+            intervals = ['major', 'minor', 'minor', 'major', 'minor', 'minor']
+            print_scale(chromatic_scale, major_scale, minor_scale, key, interval)
 
 
 
